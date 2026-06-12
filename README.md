@@ -1,3 +1,8 @@
+| File | Computes | How you run it |
+|------|----------|----------------|
+| [`src/compute_chi_ijk.py`](src/compute_chi_ijk.py) | Third-order cooperation index χ(i,j,k) for all ordered triples of two PDB files | Google Colab (upload structures in the browser) |
+| [`src/compute_Rijkl.py`](src/compute_Rijkl.py) | Fourth-order normalized invariant for a fixed triple i, j, k and every remaining residue l | Command line (answers a few prompts) |
+
 # Laplacian Minor Hierarchy for Many-Body Protein Communication
 
 Code accompanying:
