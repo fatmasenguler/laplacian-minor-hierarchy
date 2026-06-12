@@ -4,25 +4,33 @@ Code accompanying:
 
 > Senguler Ciftci F. and Erman B. *The Geometry of Allostery: A Laplacian Minor Hierarchy for Many-Body Protein Communication.* (2026)
 
-This repository provides code for computing higher-order effective-distance invariants of a protein contact network directly from PDB structures.
+This repository provides Google Colab notebooks for computing higher-order effective-distance invariants of a protein contact network directly from PDB structures.
 
-The main runnable file currently provided here is a Google Colab notebook for the third-order cooperation index, ( \chi_{ijk} ).
+The notebooks compute:
+
+* the third-order cooperation index ( \chi_{ijk} )
+* the fourth-order normalized invariant ( R_{ijkl} )
 
 ---
 
 ## What is in this repository?
 
-| File                                             | What it does                                                                         | How to run it       |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------ | ------------------- |
-| [`compute_chi_ijk.ipynb`](compute_chi_ijk.ipynb) | Computes the third-order cooperation index ( \chi_{ijk} ) for two uploaded PDB files | Run in Google Colab |
+| File                                                   | What it does                                                                                                    | How to run it       |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- | ------------------- |
+| [`compute_chi_ijk.ipynb`](compute_chi_ijk.ipynb)       | Computes the third-order cooperation index ( \chi_{ijk} ) for two uploaded PDB files                            | Run in Google Colab |
+| [`compute_Rijklipynb.ipynb`](compute_Rijklipynb.ipynb) | Computes the fourth-order invariant ( R_{ijkl} ) for a fixed triple ( i,j,k ) and every remaining residue ( l ) | Run in Google Colab |
 
-The notebook compares two protein structures. When you run it, it asks you to upload exactly two `.pdb` files.
+The first notebook, `compute_chi_ijk.ipynb`, compares two protein structures.
+
+The second notebook, `compute_Rijklipynb.ipynb`, analyzes one protein structure at a time. It asks for a PDB file, a chain ID, three residue numbers ( i,j,k ), and then computes ( R_{ijkl} ) for every valid residue ( l ).
+
+> **Important:** Make sure both notebook files are uploaded to the repository root. If `compute_Rijklipynb.ipynb` is missing, the second link above will not work.
 
 ---
 
 ## Before you start: a note about GitHub buttons
 
-This page is hosted on GitHub. You do **not** need to know GitHub or Git to use the notebook.
+This page is hosted on GitHub. You do **not** need to know GitHub or Git to use the notebooks.
 
 However, GitHub has several buttons that can be confusing:
 
@@ -31,35 +39,30 @@ However, GitHub has several buttons that can be confusing:
 * **Download raw file** downloads the actual file to your computer.
 * **Download ZIP** downloads the whole repository.
 
-If you only want to run the notebook, use **Download raw file** or **Download ZIP**. Do not use the small **Copy** buttons unless you only want to copy a piece of text.
+If you only want to run the notebooks, use **Download raw file**, **Download ZIP**, or open the notebook directly in Google Colab. Do not use the small **Copy** buttons unless you only want to copy a piece of text.
 
 ---
 
-## Option 1 — Run the notebook in Google Colab
+## Option 1 — Run a notebook in Google Colab
 
 This is the easiest option for readers who do not use GitHub.
 
-1. Open [`compute_chi_ijk.ipynb`](compute_chi_ijk.ipynb) on GitHub.
+1. Open the notebook you want to use:
 
-2. Click the download icon, usually labeled **Download raw file**, to save the notebook.
+   * [`compute_chi_ijk.ipynb`](compute_chi_ijk.ipynb)
+   * [`compute_Rijklipynb.ipynb`](compute_Rijklipynb.ipynb)
 
-3. Make sure the downloaded file is named:
+2. If you see an **Open in Colab** button at the top of the notebook, click it.
 
-   ```text
-   compute_chi_ijk.ipynb
-   ```
+3. If you do not see that button:
 
-4. Open [Google Colab](https://colab.research.google.com/).
+   * click the download icon, usually labeled **Download raw file**
+   * save the notebook to your computer
+   * open [Google Colab](https://colab.research.google.com/)
+   * choose **File → Upload notebook**
+   * upload the `.ipynb` file
 
-5. In Colab, choose **File → Upload notebook**.
-
-6. Upload `compute_chi_ijk.ipynb`.
-
-7. Run the cells from top to bottom.
-
-8. When prompted, upload exactly two `.pdb` files.
-
-The notebook will compute ( \chi_{ijk} ), create output CSV files, and prepare downloadable results.
+4. Run the notebook cells from top to bottom.
 
 ---
 
@@ -75,13 +78,14 @@ Use this option if you want a local copy of everything in the repository.
 
 4. Unzip the downloaded file on your computer.
 
-5. Open the file:
+5. Open the notebook you want:
 
    ```text
    compute_chi_ijk.ipynb
+   compute_Rijklipynb.ipynb
    ```
 
-6. Upload that notebook to Google Colab using the steps in Option 1.
+6. Upload the notebook to Google Colab using the steps in Option 1.
 
 ---
 
@@ -94,30 +98,134 @@ git clone https://github.com/fatmasenguler/laplacian-minor-hierarchy.git
 cd laplacian-minor-hierarchy
 ```
 
-Then open `compute_chi_ijk.ipynb`.
+Then open one of the notebooks:
+
+```text
+compute_chi_ijk.ipynb
+compute_Rijklipynb.ipynb
+```
 
 This option is only necessary if you already use Git. If you do not know Git, use Option 1 or Option 2 instead.
 
 ---
 
-## Running the notebook
+## Notebook 1: `compute_chi_ijk.ipynb`
 
-The notebook is designed for Google Colab.
+Use this notebook to compute the third-order cooperation index ( \chi_{ijk} ).
 
-In Colab:
+### Input
 
-1. Run the notebook cells from top to bottom.
-2. When the upload box appears, upload exactly two PDB files.
-3. Wait for the calculations to finish.
-4. Download the generated output files.
+The notebook asks you to upload exactly two PDB files.
 
-The notebook produces tables of the third-order cooperation index ( \chi_{ijk} ). Large outputs may be split into multiple CSV files so that they can be opened safely in spreadsheet software.
+Each file should have the extension:
+
+```text
+.pdb
+```
+
+### What it computes
+
+For each uploaded structure, the notebook builds a protein contact network and computes the third-order cooperation index
+
+[
+\chi_{ijk}
+]
+
+for residue triples.
+
+### Output
+
+The notebook creates output tables, usually in CSV format. For large proteins, the output may be split into multiple files so that the tables can be opened safely in spreadsheet software such as Excel.
+
+---
+
+## Notebook 2: `compute_Rijklipynb.ipynb`
+
+Use this notebook to compute the fourth-order invariant ( R_{ijkl} ).
+
+This notebook analyzes one PDB structure at a time.
+
+### Input
+
+When you run the notebook, it asks for:
+
+1. the PDB file path, for example:
+
+   ```text
+   5HED.pdb
+   ```
+
+2. the chain ID, for example:
+
+   ```text
+   A
+   ```
+
+   If you leave the chain ID blank, the notebook uses all chains.
+
+3. residue ( i ), using the PDB residue number
+
+4. residue ( j ), using the PDB residue number
+
+5. residue ( k ), using the PDB residue number
+
+6. the weighting scheme
+
+The available weighting schemes are:
+
+```text
+unweighted
+inv_d2
+exp
+```
+
+Their meanings are:
+
+| Scheme       | Edge weight                   |
+| ------------ | ----------------------------- |
+| `unweighted` | ( w_{ij} = 1 )                |
+| `inv_d2`     | ( w_{ij} = 1/d_{ij}^{2} )     |
+| `exp`        | ( w_{ij} = \exp(-d_{ij}/kT) ) |
+
+For the exponential scheme, `kT` must be in Angstrom units. If you leave `kT` blank, the notebook uses the mean contact distance as a fallback.
+
+### What it computes
+
+After the user chooses residues ( i,j,k ), the notebook computes
+
+[
+R_{ijkl}
+]
+
+for every valid residue ( l ) in the protein, excluding ( i,j,k ).
+
+In other words, ( i,j,k ) are fixed, and the notebook scans over all possible fourth residues ( l ).
+
+### Output
+
+The notebook prints a table like this:
+
+```text
+i       j       k       l          R_ijkl
+--------------------------------------------------
+330     327     372     298        0.902967
+330     327     372     299        0.897498
+...
+```
+
+It also saves the results to a text file with a name such as:
+
+```text
+5HED_chainA_exp_kT1_Rijkl_i330_j327_k372.txt
+```
+
+The output file contains the selected residues, the weighting scheme, diagnostic information, and the computed ( R_{ijkl} ) values.
 
 ---
 
 ## Required input files
 
-You need two protein structures in PDB format.
+You need protein structures in PDB format.
 
 Each file should have the extension:
 
@@ -131,15 +239,17 @@ For the structures used in the manuscript, see the **Structures** section below.
 
 ## Python packages
 
-If you run the notebook in Google Colab, the required packages are handled inside the notebook environment.
+If you run the notebooks in Google Colab, the required packages are handled inside the notebook environment.
 
-If you adapt the notebook for local Python use, the main Python packages are:
+The notebooks use common scientific Python packages, including:
 
 ```bash
 pip install numpy scipy pandas biopython
 ```
 
-The notebook also uses Google Colab upload/download tools, so local use may require small changes to the file-upload parts of the code.
+The fourth-order notebook installs Biopython directly in Colab.
+
+If you adapt the notebooks for local Python use, you may need to modify the file-upload and file-download parts of the code.
 
 ---
 
@@ -186,11 +296,11 @@ R*{ij} R_{ik}
 }.
 ]
 
-The manuscript also discusses the fourth-order normalized invariant,
+The fourth-order normalized invariant is
 
 [
-\chi_{ijkl}
-===========
+R_{ijkl}
+========
 
 \frac{
 \det G^{(i)}*{jkl}
@@ -222,11 +332,11 @@ To reproduce the manuscript figures, use the same parameter choices described in
 
 The relevant parameters include:
 
-* Contact cutoff distance
-* Edge-weighting rule
-* Sequence-neighbor exclusion rule
-* Chain selection
-* Residue indexing convention
+* contact cutoff distance
+* edge-weighting rule
+* sequence-neighbor exclusion rule
+* chain selection
+* residue indexing convention
 
 For consistency, use the same settings for all structures being compared.
 
@@ -243,17 +353,17 @@ PSD-95 PDZ3 variants, all T-2F bound, from the [RCSB PDB](https://www.rcsb.org/)
 | 5HFC   | H372A         |
 | 5HFF   | G330T + H372A |
 
-Download the PDB files from the RCSB PDB and upload them to the notebook when prompted.
+Download the PDB files from the RCSB PDB and upload them to the notebooks when prompted.
 
 ---
 
 ## Troubleshooting
 
-### I clicked Copy, but I did not get a Python or notebook file
+### I clicked Copy, but I did not get a notebook file
 
 The **Copy** button only copies text. It does not download the file.
 
-Use **Download raw file** or **Download ZIP** instead.
+Use **Download raw file**, **Download ZIP**, or **Open in Colab** instead.
 
 ### The notebook opens as strange text
 
@@ -263,11 +373,41 @@ This is normal. To use the notebook, download the file and open it in Google Col
 
 ### Google Colab asks me to upload files
 
-That is expected. Upload exactly two `.pdb` files when prompted.
+That is expected.
 
-### The output is split into several files
+For `compute_chi_ijk.ipynb`, upload exactly two `.pdb` files.
 
-That is also expected for large proteins. The notebook may split large tables into smaller CSV files so that they can be opened in Excel or other spreadsheet programs.
+For `compute_Rijklipynb.ipynb`, make sure the PDB file is available in the Colab session, then enter its file path when prompted.
+
+### The fourth-order notebook says “File not found”
+
+Make sure the PDB file has been uploaded to the same Colab session.
+
+For example, if the uploaded file is named:
+
+```text
+5HED.pdb
+```
+
+then enter:
+
+```text
+5HED.pdb
+```
+
+when the notebook asks for the PDB file path.
+
+### The notebook says a residue was not found
+
+Check that you entered the PDB residue number, not the row number in the notebook output.
+
+Also check that you selected the correct chain ID.
+
+### The contact graph is disconnected
+
+This can happen if the cutoff is too small or if the selected chain does not form a connected contact graph.
+
+Try checking the chain ID and the PDB file. If necessary, adjust the cutoff in the notebook code.
 
 ---
 
