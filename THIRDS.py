@@ -5,9 +5,14 @@ THIRDS_ligand_patched.py
 
 Third-order cooperation index of the Laplacian minor hierarchy,
 
-    chi^(i)_{j,k} = R_ijk / (R_ij R_ik) = 1 - (K^(i)_jk)^2 / (R_ij R_ik)
+    chi^(i)_{j,k} = (K^(i)_jk)^2 / (R_ij R_ik)
 
 with K^(i)_jk = (R_ij + R_ik - R_jk) / 2   (Eq. B.8 / C.5 / C.19).
+
+Convention:
+
+    chi = 0  uncorrelated
+    chi = 1  correlated
 
 Residue i is the REFERENCE (anchor). The normalizer contains only
 distances rooted at i, so chi is deliberately NOT symmetric under
@@ -266,11 +271,13 @@ def cooperation_index_vector(R, ref_idx, j_idx):
     evaluated for every running residue k.
 
         K^(i)_jk = (R_ij + R_ik - R_jk) / 2
-        chi      = 1 - (K^(i)_jk)^2 / (R_ij R_ik)
+        chi      = (K^(i)_jk)^2 / (R_ij R_ik)
+
+    chi = 0 is uncorrelated, chi = 1 is correlated.
 
     FIX 3: only k = i is undefined (R_ii = 0 in the denominator).
-    At k = j the value is exactly 0 - the two displacement vectors
-    coincide, so the Gram determinant vanishes - and it is returned.
+    At k = j the value is exactly 1 - the two displacement vectors
+    coincide, so the overlap is complete - and it is returned.
     """
     if ref_idx == j_idx:
         raise ValueError("reference residue i and partner residue j "
@@ -283,11 +290,11 @@ def cooperation_index_vector(R, ref_idx, j_idx):
     K_ijk = 0.5 * (R_ij + R_ik - R_jk)
 
     with np.errstate(divide="ignore", invalid="ignore"):
-        chi = 1.0 - (K_ijk ** 2) / (R_ij * R_ik)
+        chi = (K_ijk ** 2) / (R_ij * R_ik)
 
     chi = np.asarray(chi, float)
     chi[ref_idx] = np.nan          # R_ii = 0: genuinely undefined
-    chi[j_idx] = 0.0               # exact value, not a singularity
+    chi[j_idx] = 1.0               # exact value, not a singularity
 
     # Gram/Hadamard bounds (Eq. C.28). Clip only float dust.
     if chi.size:
@@ -469,8 +476,9 @@ def main():
 
     with open(output_file, "w") as f:
         f.write("# Third-order cooperation index, Laplacian minor hierarchy\n")
-        f.write(f"# chi^(i)_(j,k) = R_ijk / (R_ij R_ik), "
+        f.write(f"# chi^(i)_(j,k) = (K^(i)_jk)^2 / (R_ij R_ik), "
                 f"i = {res_i} (reference), j = {res_j} (partner)\n")
+        f.write("# chi = 0 uncorrelated, chi = 1 correlated.\n")
         f.write("# Anchored at i: chi is NOT symmetric under i <-> j.\n")
         f.write(f"# Protein 1: {pdb1}\n")
         f.write(f"# Protein 2: {pdb2}\n")
@@ -479,7 +487,7 @@ def main():
         f.write(f"# Parameters: rc = {rc} A, d0 = {d0}\n")
         f.write("# Difference = Protein 2 - Protein 1\n")
         f.write(f"# k = {res_i} is undefined (R_ii = 0); "
-                f"k = {res_j} is exactly 0.\n")
+                f"k = {res_j} is exactly 1.\n")
         f.write("# ---------------------------------------------------------"
                 "----------\n")
         f.write(f"# {'Res_k':<8} {'P1_chi':<18} {'P2_chi':<18} "
