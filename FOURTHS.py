@@ -9,6 +9,11 @@ for two proteins and their difference (Protein 2 - Protein 1).
 Output format (4 columns):
   Residue_ID | chi_a,b,c,i (Protein 1) | chi_a,b,c,i (Protein 2) | Diff (P2 - P1)
 
+Convention:
+
+    chi = 0  uncorrelated
+    chi = 1  correlated
+
 Dependencies: numpy only
 """
 
@@ -244,7 +249,10 @@ def higher_order_chi(R, subset):
     """
     Normalized higher-order cooperation index (Eq. C.23).
 
-        chi_S^(i) = det K_S / prod_{s in rest} R_{i,s}
+        chi_S^(i) = 1 - det K_S / prod_{s in rest} R_{i,s}
+
+    chi = 0 is uncorrelated, chi = 1 is correlated. This matches the
+    third-order index chi^(i)_{j,k} = (K^(i)_jk)^2 / (R_ij R_ik).
 
     subset[0] is the REFERENCE residue i and stays FIXED; the remaining
     entries are the other members of S. For the fourth-order scan of
@@ -263,7 +271,7 @@ def higher_order_chi(R, subset):
     if denom <= 0 or np.isnan(R_S):
         return np.nan
 
-    chi = R_S / denom
+    chi = 1.0 - R_S / denom
 
     # Clip tiny numerical excursions outside [0,1]
     if np.isfinite(chi):
@@ -459,7 +467,8 @@ def main():
           f"and writing results to: {output_file}")
     with open(output_file, 'w') as f:
         f.write("# Fourth-order cooperation index, Laplacian minor hierarchy\n")
-        f.write(f"# chi^(i)_(j,k,x) = R_ijkx / (R_ij R_ik R_ix)\n")
+        f.write(f"# chi^(i)_(j,k,x) = 1 - det K_S / (R_ij R_ik R_ix)\n")
+        f.write("# chi = 0 uncorrelated, chi = 1 correlated.\n")
         f.write(f"# i = {res_a} (reference, FIXED), j = {res_b}, "
                 f"k = {res_c}, x = running residue\n")
         f.write("# Anchored at i: the reference does not move with x.\n")
@@ -469,7 +478,7 @@ def main():
         f.write(f"# Parameters: rc = {rc} Å, d0 = {d0} Å\n")
         f.write(f"# Difference = Protein 2 - Protein 1\n")
         f.write(f"# x = {res_a} is undefined (R_ii = 0); "
-                f"x = {res_b} and x = {res_c} are exactly 0.\n")
+                f"x = {res_b} and x = {res_c} are exactly 1.\n")
         f.write(f"# -------------------------------------------------------------------\n")
         f.write(f"# {'Res_x':<8} {'P1_chi':<18} {'P2_chi':<18} {'Diff_P2-P1':<18}\n")
 
