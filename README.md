@@ -1,25 +1,35 @@
-# Laplacian Minor Hierarchy for Many-Body Protein Communication
+# The Geometry of Allostery: Quantifying Pathway Organization in Protein Networks
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22172172.svg)](https://doi.org/10.5281/zenodo.22172172)
 
 Code accompanying:
 
-> Senguler Ciftci F. and Erman B. *The Geometry of Allostery: A Laplacian Minor Hierarchy for Many-Body Protein Communication.* (2026)
+> Senguler Ciftci F. and Erman B. *The Geometry of Allostery: Quantifying Pathway Organization in Protein Networks.* (2026)
 
 This repository computes higher-order effective-distance invariants of a protein contact network directly from PDB structures.
 
 The hierarchy has three levels:
 
-* the second-order effective resistance $R_{ij}$
-* the third-order cooperation index $\chi_{ijk}$
-* the fourth-order normalized invariant $R_{ijkl}$
+* the second-order effective distance $R_{ij}$ (Eq. 7)
+* the third-order decoupling index $\chi_{ijk}$ (Eq. 15)
+* the fourth-order decoupling index $\chi_{ijkl}$ (Eq. 19)
 
-**Sign convention.** Every index in this repository runs from 0 to 1, with
+**Sign convention.** Both decoupling indices run from 0 to 1, with
 
 ```text
-0  uncorrelated  (independent communication pathways)
-1  correlated    (fully overlapping pathways)
+0  coupled     (complete pathway overlap, cooperative multi-node unit)
+1  decoupled   (independent, topologically disjoint communication channels)
 ```
 
-The same convention is used in all notebooks, all scripts, and the manuscript.
+This is the convention of the manuscript (Section 2.1.3 and Appendix C.6). Note that it is the *decoupling* direction: a larger value means *less* correlation between pathways.
+
+---
+
+## Audio summary, appendices, and supplementary note
+
+A spoken summary of the paper, the full appendices, and Supplementary Note S1 (AlphaFold 3 ensemble consistency of the 5HED effective-distance geometry) are archived on Zenodo:
+
+**https://doi.org/10.5281/zenodo.22172172**
 
 ---
 
@@ -30,7 +40,7 @@ The same convention is used in all notebooks, all scripts, and the manuscript.
 | File | What it does |
 | ---- | ------------ |
 | [`compute_chi_ijk.ipynb`](compute_chi_ijk.ipynb) | Third-order index $\chi_{ijk}$ for all ordered triples in each of two uploaded PDB files |
-| [`compute_Rijkl.ipynb`](compute_Rijkl.ipynb) | Fourth-order invariant $R_{ijkl}$ for a fixed triple $i,j,k$ and every remaining residue $l$ |
+| [`compute_Rijkl.ipynb`](compute_Rijkl.ipynb) | Fourth-order index $\chi_{ijkl}$ for a fixed triple $i,j,k$ and every remaining residue $l$ |
 | [`AlphaFold3_5HED_25_SECONDS_ensemble_UPLOAD_FIRST.ipynb`](AlphaFold3_5HED_25_SECONDS_ensemble_UPLOAD_FIRST.ipynb) | Runs AlphaFold 3 on 5HED, then applies the second-order analysis across a 25-model ensemble |
 
 ### Python modules
@@ -113,68 +123,54 @@ cd laplacian-minor-hierarchy
 
 ---
 
-## Notebook 1: `compute_chi_ijk.ipynb`
+## Module 1: `SECONDS.py`
 
-Computes the third-order cooperation index $\chi_{ijk}$.
+Computes the second invariant, the pairwise effective distance $R_{ij}$, and reduces it to the residue profile of Eq. (10):
 
-### Input
+$$R_{i,\mathrm{cumul}} = \sqrt{\frac{1}{N}\sum_j R_{ij}}.$$
 
-Upload exactly two files with the extension `.pdb`.
+It compares two structures and reports the profile of each plus their difference. The average is taken over the residues present in both structures, so the two columns are on the same footing.
 
-### What it computes
-
-For each structure, the notebook builds a $C_\alpha$ contact network and evaluates $\chi_{ijk}$ for every ordered triple of residues.
-
-### Output
-
-CSV tables. For large proteins the output is split into several files so that each stays within the row limit of spreadsheet software.
+To reproduce Figure 2, run it once for each variant against the apo reference `1BFE.pdb`.
 
 ---
 
-## Notebook 2: `compute_Rijkl.ipynb`
+## Module 2: `THIRDS.py`
 
-Computes the fourth-order invariant $R_{ijkl}$. It analyzes one structure at a time.
+Computes the third-order decoupling index
 
-### Input
+$$\chi^{(i)}_{j,k} = 1 - \frac{\left(K^{(i)}_{jk}\right)^2}{R_{ij}R_{ik}}.$$
 
-The notebook prompts for:
+Residue $i$ is the anchor and $j$ the partner; both stay fixed while $k$ runs over the sequence. The script prompts for two PDB files, the chain IDs, $r_c$, $d_0$, and then $i$ and $j$.
 
-1. the PDB file path, for example `5HED.pdb`
-2. the chain ID, for example `A` (blank uses all chains)
-3. residue $i$, using the PDB residue number
-4. residue $j$
-5. residue $k$
-6. the weighting scheme
+To reproduce Figure 3, use $i = 330$ (the $\beta_2$–$\beta_3$ surface loop) and $j = 372$ (the binding pocket), with the structure pairs 1BFE→5HEB, 5HEB→5HEY, 5HEB→5HED, 5HEB→5HFB, 5HFC→5HFF, and 5HEB→5HF1.
 
-The weighting schemes are:
-
-| Scheme | Edge weight |
-| ------ | ----------- |
-| `unweighted` | $w_{ij} = 1$ |
-| `inv_d2` | $w_{ij} = 1/d_{ij}^{2}$ |
-| `exp` | $w_{ij} = \exp(-d_{ij}/kT)$ |
-
-For the exponential scheme, `kT` must be in Angstrom units, because the exponent has to be dimensionless. If `kT` is left blank, the mean contact distance is used.
-
-### What it computes
-
-With $i,j,k$ fixed, the notebook scans every remaining residue $l$ and reports $R_{ijkl}$.
-
-### Output
-
-A printed table and a text file, for example:
-
-```text
-5HED_chainA_exp_kT1_Rijkl_i330_j327_k372.txt
-```
-
-The file records the selected residues, the weighting scheme, diagnostic information, and the computed values.
+At $k = i$ the index is undefined, because $R_{ii} = 0$ sits in the denominator. At $k = j$ it is exactly 0.
 
 ---
 
-## Notebook 3: `AlphaFold3_5HED_25_SECONDS_ensemble_UPLOAD_FIRST.ipynb`
+## Module 3: `FOURTHS.py`
 
-Predicts 5HED with AlphaFold 3 and applies the second-order analysis to the resulting ensemble.
+Computes the fourth-order decoupling index
+
+$$\chi^{(i)}_{j,k,l} = \frac{\det K_S}{R_{ij}R_{ik}R_{il}}, \qquad
+K_S = \begin{pmatrix}
+R_{ij} & K^{(i)}_{jk} & K^{(i)}_{jl} \\
+K^{(i)}_{jk} & R_{ik} & K^{(i)}_{kl} \\
+K^{(i)}_{jl} & K^{(i)}_{kl} & R_{il}
+\end{pmatrix}.$$
+
+The triple $i,j,k$ stays fixed while the fourth residue runs over the sequence. The script prompts for two PDB files, the chain IDs, $r_c$, $d_0$, and then $i$, $j$, $k$.
+
+To reproduce Figure 4, fix the structural triad $i = 320$, $j = 330$, $k = 372$ and sweep the fourth node, using the pairs 5HEB→5HED, 5HEB→5HEY, 5HEB→5HF1, 5HFC→5HFF, and 5HEB→5HFB.
+
+At $x = i$ the index is undefined. At $x = j$ and $x = k$ two rows of $K_S$ coincide, so $\det K_S = 0$ and the index is exactly 0.
+
+---
+
+## Notebook: `AlphaFold3_5HED_25_SECONDS_ensemble_UPLOAD_FIRST.ipynb`
+
+Predicts 5HED with AlphaFold 3 and applies the second-order analysis to the resulting ensemble. This is the calculation behind Supplementary Note S1.
 
 ### Requirements
 
@@ -182,17 +178,15 @@ Upload `5HED.pdb` in the first cell, and make sure [`SECONDS.py`](SECONDS.py) is
 
 ### What it computes
 
-Up to 25 AF3 models (5 seeds x 5 diffusion samples). For each model the peptide ligand in chain B is eliminated by Schur reduction, and the residue profile
-
-$$R_{i,\mathrm{cumulative}} = \sqrt{\tfrac{1}{N}\sum_j R_{ij}}$$
-
-is computed for chain A. The notebook then reports per-residue SD and CV, a mean $\pm$ 1.96 SD ensemble band, and model-wise NRMSE and correlation to the mean. The experimental reference is the same `5HED.pdb` uploaded in the first cell.
+Up to 25 AF3 models (5 seeds × 5 diffusion samples). For each model the peptide ligand in chain B is eliminated by Schur reduction, and the residue profile $R_{i,\mathrm{cumul}}$ is computed for chain A. The notebook then reports per-residue SD and CV, a mean ± 1.96 SD ensemble band, and model-wise NRMSE and correlation to the mean. The experimental reference is the same `5HED.pdb` uploaded in the first cell.
 
 ---
 
 ## The method in brief
 
-The protein is represented as a $C_\alpha$ contact graph with weighted Laplacian $L$. When a ligand is present, its nodes are eliminated by Schur (Kron) reduction, which leaves an effective protein Laplacian carrying the ligand-mediated couplings.
+The protein is represented as a $C_\alpha$ contact graph with weighted Laplacian $L$, whose off-diagonal entries are $L_{ij} = -\exp(-d_{ij}/d_0)$ for $d_{ij} \le r_c$ and zero otherwise (Eq. 1). When a ligand is present, its nodes are eliminated by Schur (Kron) reduction, which leaves an effective protein Laplacian carrying the ligand-mediated couplings (Eq. 21):
+
+$$L_\mathrm{eff} = L_{pp} - L_{pl}L_{ll}^{-1}L_{lp}.$$
 
 From the Moore-Penrose pseudoinverse $K = L^{+}$, the pairwise effective distance is
 
@@ -202,25 +196,19 @@ The overlap of two paths anchored at a reference residue $i$ is
 
 $$K^{(i)}_{ab} = \tfrac{1}{2}\left(R_{ia} + R_{ib} - R_{ab}\right).$$
 
-The third-order cooperation index is
+The third-order decoupling index is
 
-$$\chi_{ijk} = \frac{\left(K^{(i)}_{jk}\right)^2}{R_{ij} R_{ik}}.$$
+$$\chi_{ijk} = \frac{R_{ijk}}{R_{ij}R_{ik}} = 1 - \frac{\left(K^{(i)}_{jk}\right)^2}{R_{ij}R_{ik}},$$
 
-The fourth-order normalized invariant is
+where $R_{ijk} = \det L(i,j,k)/\tau$ is the third Laplacian minor, equal to the $2 \times 2$ Gram determinant. The fourth-order decoupling index is
 
-$$R_{ijkl} = 1 - \frac{\det G^{(i)}_{jkl}}{R_{ij} R_{ik} R_{il}},$$
+$$\chi_{ijkl} = \frac{R_{ijkl}}{R_{ij}R_{ik}R_{il}},$$
 
-where
+where $R_{ijkl} = \det L(i,j,k,l)/\tau = \det K_S$ is the $3 \times 3$ Gram determinant given above.
 
-$$G^{(i)}_{jkl} = \begin{pmatrix}
-R_{ij} & K^{(i)}_{jk} & K^{(i)}_{jl} \\
-K^{(i)}_{jk} & R_{ik} & K^{(i)}_{kl} \\
-K^{(i)}_{jl} & K^{(i)}_{kl} & R_{il}
-\end{pmatrix}.$$
+Note the distinction: $R_{ijk}$ and $R_{ijkl}$ are the *unnormalized* minors; $\chi_{ijk}$ and $\chi_{ijkl}$ are the normalized indices. Only the latter are bounded in $[0,1]$, by the Cauchy-Schwarz and Hadamard inequalities respectively.
 
-Both indices lie in $[0,1]$ by the Cauchy-Schwarz and Hadamard bounds, and both follow the sign convention stated at the top of this page: 0 for independent pathways, 1 for fully overlapping ones.
-
-Two boundary cases are worth noting. At third order, $\chi_{ijk} = 1$ is reached only in the limit $R_{jk} \to 0$, so distinct residues approach but do not attain the upper end. At fourth order, $R_{ijkl} = 1$ is attained whenever the three displacement vectors become coplanar, which does occur for distinct residues.
+Two boundary cases are worth noting. At third order, $\chi = 0$ requires the two displacement vectors anchored at $i$ to be collinear, which happens exactly when $k = j$. At fourth order, $\chi = 0$ whenever the three displacement vectors become linearly dependent, which occurs at $x = j$ and $x = k$ and can also occur for distinct residues. The upper end, $\chi = 1$, requires mutual orthogonality of the anchored displacement vectors.
 
 See the manuscript Methods and Appendix C for the full derivation.
 
@@ -228,7 +216,13 @@ See the manuscript Methods and Appendix C for the full derivation.
 
 ## Anchoring
 
-The command-line modules use an explicit reference residue. The normalizer contains only distances rooted at that anchor, so $\chi^{(i)}_{j,k}$ is deliberately not symmetric under $i \leftrightarrow j$: the exchange ratio is $R_{jk}/R_{ik}$. When scanning a running residue, the anchor stays fixed. Moving the anchor onto the running residue changes the reported profile.
+The command-line modules use an explicit reference residue. The unnormalized minor $R_S = \det L(S)/\tau$ is symmetric under any permutation of the residues in $S$, but the normalizer contains only distances rooted at the anchor. Consequently $\chi^{(i)}_{j,k}$ is deliberately not symmetric under $i \leftrightarrow j$, and the exchange ratio is exactly
+
+$$\frac{\chi^{(i)}_{j,k}}{\chi^{(j)}_{i,k}} = \frac{R_{jk}}{R_{ik}}.$$
+
+The index *is* symmetric in the target indices: $\chi^{(i)}_{j,k} = \chi^{(i)}_{k,j}$, and at fourth order $\chi_{ijkl} = \chi_{ikjl} = \chi_{iljk}$.
+
+When scanning a running residue, the anchor stays fixed. Moving the anchor onto the running residue changes the reported profile.
 
 ---
 
@@ -246,14 +240,19 @@ pip install numpy scipy pandas biopython
 
 ## Structures
 
-PSD-95 PDZ3 variants, all T-2F bound, from the [RCSB PDB](https://www.rcsb.org/):
+PSD-95 PDZ3 variants from the [RCSB PDB](https://www.rcsb.org/). The manuscript analyzes all eight ligand-bound structures characterized by Raman et al. (2016), evaluated against the apo wild-type reference:
 
-| PDB ID | Variant |
-| ------ | ------- |
-| 5HED | Wild type |
-| 5HF1 | G330T |
-| 5HFC | H372A |
-| 5HFF | G330T + H372A |
+| PDB ID | State |
+| ------ | ----- |
+| 1BFE | Apo wild type (baseline reference) |
+| 5HEB | Wild type, Class I (CRIPT) bound |
+| 5HED | Wild type, Class II (T-2F) bound |
+| 5HET | Wild type variant |
+| 5HEY | G330T, Class I bound |
+| 5HF1 | G330T, Class II bound |
+| 5HFB | H372A |
+| 5HFC | H372A, Class II bound |
+| 5HFF | G330T + H372A, Class II bound |
 
 Download the PDB files from RCSB and upload them when prompted.
 
@@ -261,7 +260,15 @@ Download the PDB files from RCSB and upload them when prompted.
 
 ## Parameters used in the paper
 
-To reproduce the manuscript figures, use the parameter choices given in the Methods section: contact cutoff distance, edge-weighting rule, sequence-neighbor exclusion rule, chain selection, and residue indexing convention. Use identical settings for every structure being compared.
+| Parameter | Value |
+| --------- | ----- |
+| Contact cutoff $r_c$ | 7.8 Å between $C_\alpha$ atoms |
+| Length scale $d_0$ | 1.0 Å |
+| Edge weight | $w_{ij} = \exp(-d_{ij}/d_0)$ |
+| Protein chain | A ($C_\alpha$ atoms only) |
+| Peptide ligand chain | B (all heavy atoms, eliminated by Schur reduction) |
+
+These are the defaults in every module, so pressing Enter at each prompt reproduces the manuscript settings. Use identical settings for every structure being compared.
 
 ---
 
@@ -299,6 +306,21 @@ The cutoff may be too small, or the selected chain may not form a connected cont
 
 The modules reject duplicate residue numbers rather than silently keeping the last occurrence, because residue matching between two structures would be ambiguous. Restrict the chain selection or renumber the structure.
 
+### The index comes out near 1 where I expected near 0
+
+Check the sign convention at the top of this page. These are *decoupling* indices: 0 means overlapping pathways, 1 means independent ones. An earlier version of this repository used the complementary quantity $1 - \chi$.
+
+---
+
+## Citation and license
+
+If you use this code, please cite the paper and the archived record:
+
+> Senguler Ciftci F. and Erman B. *The Geometry of Allostery: Quantifying Pathway Organization in Protein Networks.* (2026)
+
+> Audio summary, appendices, and Supplementary Note S1: https://doi.org/10.5281/zenodo.22172172
+
+Released under the MIT License. See [`LICENSE`](LICENSE).
 ---
 
 ## Citation and license
